@@ -1133,8 +1133,8 @@ function Linux.Create(config)
             LayoutOrder = tabIndex
         })
         
-        TabBtn:SetAttribute("OriginalTransparency", 1)
-        Linux.RegisterTransparencyElement(TabBtn)
+        -- REMOVIDO: Linux.RegisterTransparencyElement(TabBtn)
+        -- Isso corrige o problema de transparência nas abas
         
         Linux.Instance("UICorner", {
             Parent = TabBtn,
@@ -1436,7 +1436,7 @@ function Linux.Create(config)
                     Parent = BtnFrame,
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, -20, 0.4, 0),
-                    Position = UDim2.new(0, 10, 0.6, 0),
+                    Position = UDim2.new(0, 10, 0.6, -5), -- Movido mais próximo do título
                     Font = Enum.Font.GothamSemibold,
                     Text = config.Description,
                     TextColor3 = Color3.fromRGB(150, 150, 160),
@@ -1691,7 +1691,7 @@ function Linux.Create(config)
                     Parent = Toggle,
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, -70, 0.6, 0),
-                    Position = UDim2.new(0, 10, 0.4, 0),
+                    Position = UDim2.new(0, 10, 0.4, -5), -- Movido mais próximo do título
                     Font = Enum.Font.GothamSemibold,
                     Text = config.Description,
                     TextColor3 = Color3.fromRGB(150, 150, 160),
@@ -1951,7 +1951,7 @@ function Linux.Create(config)
                     Parent = DropdownButton,
                     BackgroundTransparency = 1,
                     Size = UDim2.new(0.6, -10, 0.6, 0),
-                    Position = UDim2.new(0, 10, 0.4, 0),
+                    Position = UDim2.new(0, 10, 0.4, -5), -- Movido mais próximo do título
                     Font = Enum.Font.GothamSemibold,
                     Text = config.Description,
                     TextColor3 = Color3.fromRGB(150, 150, 160),
@@ -2358,7 +2358,7 @@ function Linux.Create(config)
                     Parent = Slider,
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, -70, 0, 16),
-                    Position = UDim2.new(0, 10, 0, 22),
+                    Position = UDim2.new(0, 10, 0, 20), -- Movido mais próximo do título
                     Font = Enum.Font.GothamSemibold,
                     Text = config.Description,
                     TextColor3 = Color3.fromRGB(150, 150, 160),
@@ -2374,7 +2374,7 @@ function Linux.Create(config)
                 BackgroundColor3 = Color3.fromRGB(16, 16, 16),
                 BackgroundTransparency = 0.7,
                 Size = UDim2.new(1, -20, 0, 6),
-                Position = UDim2.new(0, 10, 0, hasDescription and 50 or 26),
+                Position = UDim2.new(0, 10, 0, hasDescription and 48 or 26),
                 ZIndex = 2,
                 BorderSizePixel = 0,
                 BorderColor3 = Color3.fromRGB(39, 39, 42),
@@ -2690,7 +2690,7 @@ function Linux.Create(config)
                     Parent = Input,
                     BackgroundTransparency = 1,
                     Size = UDim2.new(0.5, -10, 0.6, 0),
-                    Position = UDim2.new(0, 10, 0.4, 0),
+                    Position = UDim2.new(0, 10, 0.4, -5), -- Movido mais próximo do título
                     Font = Enum.Font.GothamSemibold,
                     Text = config.Description,
                     TextColor3 = Color3.fromRGB(150, 150, 160),
@@ -3236,7 +3236,7 @@ function Linux.Create(config)
             end
         })
         
-        SettingsTab.Section({Name = "Load"})
+        SettingsTab.Section({Name = "Startup"})
         local autoLoadConfigInput = SettingsTab.Input({
             Name = "Load Config",
             Placeholder = "Config Name",
@@ -3300,20 +3300,31 @@ function Linux.Create(config)
             end
         })
         
-        SettingsTab.Section({Name = "Transparency"})
+        SettingsTab.Section({Name = "Appearance"})
         local transparencyToggle = SettingsTab.Toggle({
-            Name = "Enable Transparency",
-            Description = "Makes UI elements semi-transparent",
+            Name = "Transparency",
+            Description = "",
             Default = Linux.TransparencyEnabled,
             Callback = function(state)
+                Linux.TransparencyEnabled = state
                 Linux.ApplyTransparency(state, Linux.TransparencyValue)
                 Linux.SaveTransparencySettings()
+                
+                -- ADICIONADO: Re-seleciona a aba atual para aplicar transparência corretamente
+                if CurrentTab and Tabs[CurrentTab] then
+                    local currentTabIndex = CurrentTab
+                    CurrentTab = nil
+                    local selectTabFunction = Tabs[currentTabIndex].Button.MouseButton1Click
+                    if selectTabFunction then
+                        selectTabFunction:Fire()
+                    end
+                end
             end
         })
         
         local transparencySlider = SettingsTab.Slider({
             Name = "Transparency Amount",
-            Description = "How transparent the elements should be",
+            Description = "",
             Min = 0.1,
             Max = 0.9,
             Default = Linux.TransparencyValue,
@@ -3322,6 +3333,16 @@ function Linux.Create(config)
                 Linux.TransparencyValue = value
                 if Linux.TransparencyEnabled then
                     Linux.ApplyTransparency(true, value)
+                    
+                    -- ADICIONADO: Re-seleciona a aba atual para aplicar nova transparência
+                    if CurrentTab and Tabs[CurrentTab] then
+                        local currentTabIndex = CurrentTab
+                        CurrentTab = nil
+                        local selectTabFunction = Tabs[currentTabIndex].Button.MouseButton1Click
+                        if selectTabFunction then
+                            selectTabFunction:Fire()
+                        end
+                    end
                 end
                 Linux.SaveTransparencySettings()
             end
